@@ -1,0 +1,339 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+%\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{numprint}
+%\usepackage{ulem}
+\usepackage{balance}
+
+\usepackage{algpseudocode}
+\usepackage{algorithmicx}
+\usepackage{algorithm}
+\usepackage{color}
+\usepackage{bibentry}
+\usepackage{booktabs}
+\usepackage{xspace}
+\usepackage{tikz}
+\usepackage{todonotes}
+
+\include{macros}
+\newcommand{\dmax}{D_{\max}}
+\newcommand{\algo}[1]{\textsc{#1}}
+\newcommand{\new}[1]{{\color{teal}#1}}
+\newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
+\newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
+\newcommand{\AB}[1]{{\color{purple}[AB: #1]}}
+\newcommand{\tochange}[1]{{\color{orange}[Change/Check!: #1]}}
+\newcommand{\TODO}[1]{\todo[inline]{#1}}
+
+
+\newcommand{\daghetpart}{\algo{DagHetPart}\xspace}
+\newcommand{\reshipart}{\algo{ReshiPart}\xspace}
+\newcommand{\reshi}{\algo{Reshi}\xspace}
+
+
+
+\newcommand{\bottomlevel}[1]{\underline{l}_{#1}} % underline short italic
+\newcommand{\criticalpath}{\mathcal{P}}
+\newcommand{\parents}[1]{\,\Pi_{#1}}
+\newcommand{\children}[1]{\,C_{#1}}
+\newcommand{\cluster}{\,\mathcal{C}}
+
+
+\pagestyle{plain}
+
+\begin{document}
+
+    \title{Mapping Memory-Constrained Workflows Using a Recommender System}
+%
+    \maketitle
+
+    \begin{abstract}
+    \end{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+    \section{Introduction}
+    \label{sec:intro}
+%\skug{Budget: 1 page}
+
+%%% CONTEXT %%%
+
+
+%%% MOTIVATION %%%
+
+%%% CONTRIBUTION %%%
+    \subsubsection*{Contributions}
+    \subsubsection*{Outline}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+    \section{Related Work}
+    \label{sec:related-work}
+
+
+    \section{Model}
+    \label{sec:model}
+
+    Table~\ref{tabnotation} summarizes the main notation. % all symbols used in this paper.
+
+    \begin{table}[h!]
+        \begin{center}
+            \begin{tabular}{rl}
+                \hline
+                \textbf{Symbol}                       & \textbf{Meaning}                                               \\
+                \hline
+                $G = (V, E)$                          & Workflow graph, set of vertices (tasks) and edges              \\
+                %$v$, $u$ or $t$ & One vertex in the graph  \\
+                % $E$, $e$ & Set of edges (dependencies) in the graph, one edge   \\
+                %$\olsi{v}$, $\ulsi{v}$ & Parents of a task $v$, children of a task $v$ \\
+                $\parents{u}$, $\children{u}$         & Parents of a task $u$, children of a task $u$                  \\
+                $m_u$                                 & Memory weight of task $u$                                      \\
+                $w_u$                                 & Workload of task $u$  (normalized execution time)                 \\
+                $c_{u,v}$                             & Communication volume along the edge $(u,v)\in E$               \\
+                $F$, $\mathcal{F}$                    & A partitioning function and the partition it creates           \\
+                $V_i$                                 & Block number $i$                                               \\ %\wrt~some $F$   \\
+                $\cluster$, $k$                    & Compute system and the number of processors in it                 \\
+                $p_j$, proc($V_i$)                          & Processor number $j$, processor of block $V_i$                       \\
+                $M_j$, $s_j$                               & Memory size and speed of processor $p_j$                                \\
+                $\beta$                     & Bandwidth in the compute system                                      \\
+                $\bottomlevel{u}$                      & Bottom weight of task $u$       \\
+                $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$                     \\
+                $\Gamma = (\mathcal{V}, \mathcal{E})$                              & Quotient graph, its vertices and its edges                            \\
+                %$\nu_i$ & Single vertex in the quotient graph  \\
+                $r_u$, $r_{V_i}$                            & Memory requirement of task $u$ and of block $V_i$                       \\
+                $r_{\max}$                   & Maximum memory requirement in a workflow                        \\
+                %    $\alpha$, $\omega$& Source and target tasks in the workflow   \\
+                $\criticalpath$        & Critical path in a workflow \\
+                $R = [{V_i, [p_1\cdots p_j]}]$        & \reshi recommendations, per block. $p_1$ is the most suitable. \\
+                \hline
+                %\multicolumn{4}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
+            \end{tabular}
+        \end{center}
+        \caption{Notation} \label{tabnotation}
+    \end{table}
+
+
+    \section{Heuristics} %Partitioning-based heuristic}
+    \label{sec:heuristics}
+
+    \subsection{\reshi}
+
+    TODO: describe Reshi shortly here
+
+    \subsection{Partitioning-based heuristic -- \reshipart}
+    \label{sec.daghetpart}
+
+    We now describe out heuristic \reshipart.
+    It uses partitioning to obtain blocks and recommendations from \reshi to help choose optimal processors for the blocks.
+
+
+    \subsection*{Step 1: Partitioning}
+
+    We adopt this step from \daghetpart.
+    We run a DAG partitioner on the input workflow.
+    The partitioner takes no heterogeneity in account, and partitions with the aim of minimizing the edge cut.
+
+    %this paragraph is copied from the ipdps paper
+    This step returns the initial partitioning function in the form of an array of block numbers.
+    For instance, with $n=5$ tasks and $k=2$ processors, we may obtain a result [1,1,1,2,2]
+    meaning that tasks 1,2 and 3 are in the same block~$V_1$, and tasks 4 and 5 are
+    in another block~$V_2$.
+
+    \subsection*{Step 2: Assignment}
+
+    This step starts with the partitioning function obtained from Step~1.
+    In \daghetpart, we map biggest blocks to nodes with biggest memories, taking into account only memory heterogeneity in the
+    execution environment.
+    However, several nodes can fit memory-wise - and we can make an educated decision when choosing between them.
+    %In this case, \daghetpart did not distinguish between better- and worse-fitting nodes.
+
+    \reshipart uses the recommender system \reshi to decide what nodes fit best for each block.
+    Algorithm~\ref{alg:ReshiAssign} describes the procedure.
+
+    We first compute the quotient tree $\Gamma$ and its \textit{estimated} critical path $\criticalpath$~(Line~\ref{line:cp}).
+    The critical path can only be estimated, because without an assignment to the processors, exact execution times of tasks are unknown.
+    We also receive the recommended processors for each block from \reshi - stored as $R$~(Line~\ref{line:r}).
+
+    We start with blocks on the critical path, because assigning them well has an impact on the overall makespan.
+    We insert all still unassigned blocks on critical path into a priority queue~$Q$ -- with the required block memory
+    size as priority~(Line~\ref{line:pq}).
+    Then, going from the largest to the smallest, we try assigning each block~(Line~\ref{line:maxblock}) to one of the
+    processors that were recommended for it~(Line~\ref{line:recom-proc}).
+    We start from the processor that \reshi recommends the most and move along the recommended processors until we find a free one~(Line~\ref{line:nobusy}).
+
+    If the processor's memory size is big enough to hold this block, then we assign the block there.
+    Otherwise, we further partition the block, reinsert the newly created blocks into the quotient graph, recompute the
+    critical path and retrieve the recommendations from \reshi~(Line~\ref{line:notfit}).
+    We retrieve recommendations for all the blocks, not only the newly created ones, because with the new partitioning,
+    the recommendations for the old blocks can change.
+
+    If the block could not have been assigned to any suitable processor, we further partition it down to the memory size
+    of the smallest processor~(Line~\ref{line:partdown}).
+    After the critical path, we repeat the same procedure with the clocks that lie outside of critical path~(Lines~\ref{line:notcritical}-\ref{line:end}).
+
+
+
+    \begin{algorithm}[tb]
+        \caption{\algo{ReshiAssign}}
+        \label{alg:ReshiAssign}
+        \begin{algorithmic}[1]
+            \Procedure{\algo{ReshiAssign}}{$G$,$\mathcal{F}$, $\cluster$}
+                \Comment{Input: the workflow graph $G$ initial partition $\mathcal{F}$, cluster $\cluster$}
+
+                \State $R\gets$\reshi($F, \cluster$)\label{line:r}
+                \Comment Obtain \reshi`s recommendations
+
+                \State $\Gamma \gets $ \algo{QuotientDAG}($G$, $\mathcal{F}$ )\Comment We build a quotient DAG from the blocks of $G$ \label{line:gamma}
+                \State $\criticalpath \gets $ \algo{CriticalPath}($\Gamma$)\label{line:cp}
+                \Comment Without assignment to processors, we compute the \textit{estimated} critical path
+                \State $A \gets \emptyset$;\Comment Assigned blocks
+
+                \For{$\nu \in \criticalpath \setminus A$ }
+                    \Comment We start assigning blocks on the critical path
+                    \State \texttt{Init} PQ $Q$ with $\criticalpath \setminus A $;\label{line:pq}
+                    \Comment{max-priority queue of the blocks by size}
+                    \While{\textbf{not} $Q$\texttt{.empty()}}
+                        \label{line:whilebig}
+                        \State $V_{m} \gets Q$\texttt{.extractMax()};\label{line:maxblock}
+                        \For{$p_i \in R[V_m]$} \label{line:recom-proc}
+                            \If{$p_i$ is not busy}\label{line:nobusy}
+                                \Comment TODO: express busy precisely
+                                \If{$r_{V_m} \leq M_{i}$}
+                                    \State proc($V_m$) $\gets p_i$;\label{line:schedule-if-fits} $A\gets A \cup {V_m}$
+                                \Else \label{line:notfit}
+                                    \State $(V_{m_1}, V_{m_2}, \cdots) \gets $ \algo{Partition}($V_m$, 2); \label{line:repartition}
+                                    \State $\Gamma \gets $ \algo{QuotientDAG}($G$, $\mathcal{F} \cup (V_{m_1}, V_{m_2}, \cdots)$ )
+                                    \State $\criticalpath \gets $ \algo{CriticalPath}($\Gamma$)
+                                    \State $R\gets$\reshi($\mathcal{F} \cup (V_{m_1}, V_{m_2}, \cdots), \cluster$)
+                                    \State break;
+                                \EndIf
+                            \EndIf
+                        \EndFor
+                        \If{$proc(V_m) = NULL$} \Comment The block has not been assigned, partition it down to the memory of the smallest proc.
+                        \label{line:partdown}
+                            \State  $p_{m} \gets {\min}M(\cluster)$;
+                            \While{$r_{V_m} \geq M_m$}
+                                \State $(V_{m_1}, V_{m_2}, \cdots) \gets $ \algo{Partition}($V_m$, 2); \label{line:repartitionToSmallest}
+                                \State $V_m \gets V_{m_1}$
+                            \EndWhile
+
+                        \EndIf
+                    \EndWhile
+                \EndFor
+
+                \For{$\nu \in \mathcal{V} \setminus \criticalpath \setminus A $} \label{line:notcritical}
+                    \State \texttt{Init} PQ $Q$ with $\mathcal{V} \setminus \criticalpath \setminus A$;
+                    \Comment{max-priority queue of the blocks by size}
+                    \While{\textbf{not} $Q$\texttt{.empty()}}
+                        \State $V_{m} \gets Q$\texttt{.extractMax()};
+                        \For{$p_i \in R[V_m]$}
+                            \If{$p_i$ is not busy}
+                                \Comment TODO: express busy precisely
+                                \If{$r_{V_m} \leq M_{i}$}
+                                    \State proc($V_m$) $\gets p_i$; $A\gets A \cup {V_m}$
+                                \Else
+                                    \State $(V_{m_1}, V_{m_2}, \cdots) \gets $ \algo{Partition}($V_m$, 2);
+                                    \State $\Gamma \gets $ \algo{QuotientDAG}($G$, $\mathcal{F} \cup (V_{m_1}, V_{m_2}, \cdots)$ )
+                                    \State $\criticalpath \gets $ \algo{CriticalPath}($\Gamma$)
+                                    \State $R\gets$\reshi($\mathcal{F} \cup (V_{m_1}, V_{m_2}, \cdots), \cluster$)
+                                \EndIf
+                            \EndIf
+                        \EndFor
+                        \If{$proc(V_m) = NULL$} \Comment The block has not been assigned, partition it down to the memory of the smallest proc.
+                        \State  $p_{m} \gets {\min}M(\cluster)$;
+                        \While{$r_{V_m} \geq M_m$}
+                            \State $(V_{m_1}, V_{m_2}, \cdots) \gets $ \algo{Partition}($V_m$, 2);
+                            \State $V_m \gets V_{m_1}$
+                        \EndWhile
+
+                        \EndIf
+                    \EndWhile
+                \EndFor \label{line:end}
+            \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+    \subsection*{Step 3: Merging}
+
+    We merge like in \daghetpart.
+
+    \subsection*{Step 4: Swaps}
+
+    By this step, every block has to be assigned to a processor (unless the algorithm had failed).
+    Therefore, the input is the quotient graph, the execution environment and the recommendations provided by \reshi.
+
+    For each vertex $\nu$ in the quotient graph $\Gamma$, we find the processor that is its best fit according to \reshi.
+    However, there is another quotient vertex $\nu'$ assigned to it.
+    We then swap $\nu$ and $\nu'$ if such a swap is feasible and note the makespan it results in.
+    If the swap improves the makespan, we execute it and continue with the next vertex.
+
+
+    \begin{algorithm}[b!]
+        \caption{Swap}
+        \label{alg:ReshiSwap}
+        \begin{algorithmic}[1]
+            \Function{\algo{swap}}{$\Gamma$, $\cluster$, $R$}
+                \Comment Quotient DAG $\Gamma$ whose tasks $\mathcal{V}$ have been assigned to processors, cluster $\cluster$, \reshi recommendations $R$.
+                \State $best \gets$ \texttt{pair}($\Gamma$, \texttt{makespan}$(\Gamma)$); \label{line:init-best}
+
+                \State $curr \gets best$;
+                \While{true}
+
+
+                \For{ $(\nu \in \mathcal{V}$}
+                    \State $\nu' \gets R[\nu][0]$ \Comment $nu'$ is the quotient vertex assigned to the processor that, according to \reshi, best fits $\nu$
+                    \If{\texttt{isSwapFeasible}($best.first$,$\nu$,$\nu'$)}
+                        \label{line:feasible-swaps}
+                        \State $\Gamma' \gets$ \texttt{swap}$(best.first, (\nu, \nu'))$; \label{line:swap}
+                        \State $next \gets$ \texttt{pair}($\Gamma'$, \algo{makespan}$(\Gamma')$);
+                        \If{$next.second < curr.second$}
+                            \State $curr \gets next$; \label{line:improvement-found}\\
+                            \Comment{better solution is stored}
+                        \EndIf
+                    \EndIf
+                \EndFor \label{line:forall-pairs-end}
+                \If{$curr.second < best.second$}
+                    \State $best \gets curr$; $\Gamma \gets  best.first$;  \label{line:new-best}\\
+                    \Comment{execute improving swap and work further with the resulting quotient graph}
+                \Else
+                % \State
+                    ~\textbf{return} $best$; \label{line:return}\\
+                    \Comment{stop because no improving swap exists}
+                \EndIf
+                \EndWhile
+
+            \EndFunction
+        \end{algorithmic}
+    \end{algorithm}
+
+
+    \section{Experimental Evaluation}
+    \label{sec:expe}
+
+    \subsection{Results}
+    \label{sec:results}
+
+    \subsubsection{Running Times}
+
+    \subsubsection{Summary}
+
+
+    \section{Conclusion}
+    \label{sec:conc}
+
+
+
+    \bibliography{references}
+    \bibliographystyle{abbrv}
+\end{document}
